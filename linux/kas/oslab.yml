@@ -2,7 +2,9 @@ header:
   version: 14
 
 distro: oslab
-target: oslab-image
+target:
+  - mc:rpi4:oslab-image
+  - mc:qemu:oslab-image
 
 repos:
   bitbake:

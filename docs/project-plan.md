@@ -164,7 +164,7 @@ Detailed planning waits until phases 1 to 4 are done.
 
 | Decision | Options | Notes |
 |---|---|---|
-| Linux QEMU machine | `raspi4b` vs generic `virt` | `raspi4b` mirrors the Pi 4 but models few peripherals. `virt` is more capable but differs from hardware. May use `raspi4b` for boot parity and `virt` for feature work. |
+| Linux QEMU machine | `raspi4b` (add later) vs generic `virt` | Decided for now: Yocto `qemuarm64` (`virt`, Cortex-A72, 4 cores, 1 GB) for feature work, since it has networking and works with `runqemu`. `raspi4b` mirrors the Pi 4 but models few peripherals; revisit it for boot parity with the Pi kernel and the QNX RPi4 image. |
 | QNX reuse | Reference `qemu-bringup` vs copy into `qnx/` | Reference avoids duplication; copy makes this repo self-contained. |
 | Shared apps vs per-OS apps | One source tree, two builds vs separate | Prefer one tree behind a thin portability layer. |
 
