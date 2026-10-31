@@ -1,0 +1,10 @@
+header:
+  version: 14
+  includes:
+    - linux/kas/base.yml
+
+machine: raspberrypi4-64
+
+local_conf_header:
+  raspberrypi: |
+    ENABLE_UART = "1"

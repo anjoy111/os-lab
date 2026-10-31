@@ -64,6 +64,7 @@
             diffutils
 
             # Yocto / BitBake dependencies
+            kas
             gawk
             chrpath
             cpio

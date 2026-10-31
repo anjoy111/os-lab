@@ -57,7 +57,7 @@ Created incrementally as phases need it, not up front.
 os-lab/
   flake.nix, flake.lock     host dev shells (exists)
   docs/                     plan, per-phase write-ups, comparison notes
-  linux/                    Linux image definition (Yocto layer or Buildroot config)
+  linux/                    Yocto: kas configs (kas/) and the meta-oslab layer
   qnx/                      QNX buildfiles, startup config, SLM config
   apps/                     sample applications shared by both OSes
   cmake/                    toolchain files (linux-aarch64, qnx-aarch64le)
@@ -70,7 +70,7 @@ os-lab/
 ### Phase 0: Foundation (mostly done)
 
 - Nix flake with `build`, `runtime`, `analysis` shells. **Done.**
-- Decide Linux build system (see Open decisions).
+- Linux build system: Yocto Wrynose 6.0.4 driven by kas, in `linux/`. **Done.**
 - Decide how this repo reuses `qemu-bringup` (copy, submodule, or reference).
 - Add `Makefile` and `scripts/` skeleton; update `CLAUDE.md` with real commands.
 
@@ -164,7 +164,6 @@ Detailed planning waits until phases 1 to 4 are done.
 
 | Decision | Options | Notes |
 |---|---|---|
-| Linux build system | Yocto vs Buildroot | The flake already ships Yocto host dependencies. Buildroot builds faster and is simpler to learn; Yocto is closer to production practice and to OTA tooling later. |
 | Linux QEMU machine | `raspi4b` vs generic `virt` | `raspi4b` mirrors the Pi 4 but models few peripherals. `virt` is more capable but differs from hardware. May use `raspi4b` for boot parity and `virt` for feature work. |
 | QNX reuse | Reference `qemu-bringup` vs copy into `qnx/` | Reference avoids duplication; copy makes this repo self-contained. |
 | Shared apps vs per-OS apps | One source tree, two builds vs separate | Prefer one tree behind a thin portability layer. |
