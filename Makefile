@@ -1,29 +1,25 @@
-# nix develop exports TMPDIR and kas forwards it to BitBake, which would move the build tree to /tmp.
-KAS ?= env -u TMPDIR kas
-KAS_CONFIG ?= linux/kas/oslab.yml
-MC ?=
+.PHONY: all linux qnx clean clean-linux clean-qnx
 
-export KAS_WORK_DIR := $(CURDIR)/linux
-export KAS_BUILD_DIR := $(CURDIR)/linux/build
+all: linux qnx
 
-QEMUBOOT := $(KAS_BUILD_DIR)/tmp-qemu/deploy/images/qemuarm64/oslab-image-qemuarm64.rootfs.qemuboot.conf
+linux:
+	$(MAKE) -C linux
 
-.PHONY: linux-checkout linux-build linux-shell linux-run-qemu linux-clean
+qnx:
+	$(MAKE) -C qnx
 
-linux/build:
-	mkdir -p $@
+clean: clean-linux clean-qnx
 
-linux-checkout: | linux/build
-	$(KAS) checkout $(KAS_CONFIG)
+clean-linux:
+	$(MAKE) -C linux clean
 
-linux-build: | linux/build
-	$(KAS) build $(KAS_CONFIG) $(if $(MC),--target mc:$(MC):oslab-image)
+clean-qnx:
+	$(MAKE) -C qnx clean
 
-linux-shell: | linux/build
-	$(KAS) shell $(KAS_CONFIG)
+# make <component>-<target> runs <target> from that component's Makefile,
+# e.g. linux-shell, linux-build MC=qemu, qnx-run-qemu, qnx-inspect.
+linux-%:
+	$(MAKE) -C linux $*
 
-linux-run-qemu: | linux/build
-	$(KAS) shell $(KAS_CONFIG) -c "runqemu $(QEMUBOOT) nographic slirp"
-
-linux-clean:
-	rm -rf linux/build
+qnx-%:
+	$(MAKE) -C qnx $*

@@ -81,8 +81,9 @@ Exit: a fresh clone can enter `nix develop` and run `make help`.
 Goal: boot a minimal OS to a shell, on QEMU first, then on the Pi 4.
 
 - **QNX:** adapt the RPi4 BSP buildfile (watchdog off, console on PL011 UART0)
-  into an IFS, boot it in QEMU, then write it to an SD card for hardware. Much of
-  this exists in `qemu-bringup`.
+  into an IFS, boot it in QEMU, then write it to an SD card for hardware. The
+  QEMU part is done in `qnx/` (`make qnx-ifs`, `make qnx-run-qemu`): it boots
+  to a serial shell on QEMU `raspi4b`. The SD-card image for hardware is open.
 - **Linux:** minimal aarch64 image with kernel, init, and a serial console.
   Boot in QEMU, then produce an SD-card image for the Pi 4.
 - Scripted `make`, `make run-qemu`, `make stop-qemu` targets for each OS.
@@ -165,7 +166,6 @@ Detailed planning waits until phases 1 to 4 are done.
 | Decision | Options | Notes |
 |---|---|---|
 | Linux QEMU machine | `raspi4b` (add later) vs generic `virt` | Decided for now: Yocto `qemuarm64` (`virt`, Cortex-A72, 4 cores, 1 GB) for feature work, since it has networking and works with `runqemu`. `raspi4b` mirrors the Pi 4 but models few peripherals; revisit it for boot parity with the Pi kernel and the QNX RPi4 image. |
-| QNX reuse | Reference `qemu-bringup` vs copy into `qnx/` | Reference avoids duplication; copy makes this repo self-contained. |
 | Shared apps vs per-OS apps | One source tree, two builds vs separate | Prefer one tree behind a thin portability layer. |
 
 ## Risks
