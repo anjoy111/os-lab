@@ -18,7 +18,7 @@ The Linux configuration parses and dry-runs cleanly; no Linux image has been bui
 - Linux x86_64 host (developed on Ubuntu 24.04).
 - [Nix](https://nixos.org/download) with flakes enabled. All host tools (kas, cmake, QEMU, ...) come from the flake.
 - Disk and time for Yocto: tens of GB, and a first build takes hours.
-- For QNX: a local QNX SDP 8 install at `~/qnx800` (with a license) and the Raspberry Pi 4 BSP extracted to `~/qnx800-rpi4` from the zip in `~/qnx800/bsp`. These are license-gated and are never committed to this repo.
+- For QNX: a local QNX SDP 8 install at `~/qnx800` (with a license) and the Raspberry Pi 4 BSP extracted to `~/qnx800-rpi4` from the zip in `~/qnx800/bsp`. These are license-gated and are never committed to this repo. Setup steps are in [docs/qnx-setup.md](docs/qnx-setup.md).
 
 ## Quick start (Linux image)
 
@@ -41,9 +41,11 @@ bash
 nix develop
 make qnx-ifs                   # build qnx/build/ifs-rpi4-qemu.bin from the BSP
 make qnx-run-qemu              # boot it on QEMU raspi4b (exit with Ctrl+A, then X)
+make qnx-start-qemu            # or boot it in the background and wait until startup finished
+make qnx-stop-qemu             # stop the background instance
 ```
 
-The image boots straight to a serial shell. Only what QEMU models works (CPU, memory, serial console); the BSP's PCIe, SPI, SD, USB and network services are not started.
+The image runs a startup script that sets up logging and message-queue services and starts the Service Launch Manager (SLM), then drops to a serial shell. Only what QEMU models works (CPU, memory, serial console); the BSP's PCIe, SPI, SD, USB and network services are not started, so there is no disk, network, or SSH.
 
 ## Layout
 
@@ -56,9 +58,10 @@ linux/
   meta-oslab/    project layer: oslab distro (systemd), oslab-image,
                  multiconfig files for rpi4 and qemu
 qnx/
-  Makefile       QNX targets (ifs, inspect, run-qemu, clean)
-  derive-qemu-buildfile.sh   turns the BSP buildfile into a QEMU one
-docs/            project plan
+  Makefile       QNX targets (make -C qnx help lists them)
+  scripts/       derive-qemu-buildfile.sh (BSP buildfile -> QEMU one), qemu.sh (QEMU launcher)
+  image/         startup.sh, slm.xml, rpi4-qemu.extra.build: what goes into the IFS
+docs/            project plan, QNX setup, background notes on QEMU machines
 ```
 
 The Linux side is a Yocto Wrynose 6.0.4 [BitBake multiconfig](https://docs.yoctoproject.org/) project driven by [kas](https://kas.readthedocs.io): one build directory and one BitBake server build both machines, each with its own `TMPDIR`. Wrynose no longer ships a `poky` repo, so BitBake, OpenEmbedded-Core, `meta-yocto`, and `meta-raspberrypi` are fetched separately and pinned by commit in `linux/kas/oslab.yml`.

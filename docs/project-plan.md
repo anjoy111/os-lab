@@ -83,7 +83,9 @@ Goal: boot a minimal OS to a shell, on QEMU first, then on the Pi 4.
 - **QNX:** adapt the RPi4 BSP buildfile (watchdog off, console on PL011 UART0)
   into an IFS, boot it in QEMU, then write it to an SD card for hardware. The
   QEMU part is done in `qnx/` (`make qnx-ifs`, `make qnx-run-qemu`): it boots
-  to a serial shell on QEMU `raspi4b`. The SD-card image for hardware is open.
+  to a serial shell on QEMU `raspi4b`, after a startup script has brought up
+  logging and SLM (the Phase 3 starting point). The SD-card image for hardware is
+  open.
 - **Linux:** minimal aarch64 image with kernel, init, and a serial console.
   Boot in QEMU, then produce an SD-card image for the Pi 4.
 - Scripted `make`, `make run-qemu`, `make stop-qemu` targets for each OS.

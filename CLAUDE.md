@@ -59,8 +59,12 @@ The QNX SDP and BSP are license-gated and live outside the repo: SDP at `~/qnx80
 bash
 . ~/qnx800/qnxsdp-env.sh
 nix develop
+make qnx-help         # list the QNX targets
 make qnx-ifs          # derive the QEMU buildfile from the BSP and build qnx/build/ifs-rpi4-qemu.bin (plus .sym debug files)
-make qnx-run-qemu     # boot it to a serial shell (exit with Ctrl+A X)
+make qnx-run-qemu     # boot it in the foreground to a serial shell (exit with Ctrl+A X)
+make qnx-start-qemu   # boot it in the background, wait until startup finished, console log in qnx/build/qemu-serial.log
+make qnx-stop-qemu    # stop the background instance
+make qnx-qemu-log     # print the background console log
 make qnx-inspect      # dumpifs of the image
 make qnx-clean        # remove qnx/build
 ```
@@ -68,11 +72,15 @@ make qnx-clean        # remove qnx/build
 These run `qnx/Makefile` (`make -C qnx ifs`, `run-qemu`, ...); `BSP_DIR=` and `QNX_QEMU=` are variables there.
 
 How it works:
-- `qnx/derive-qemu-buildfile.sh` rewrites the BSP's `images/rpi4.build` at build time: console moves from the mini UART to QEMU's PL011 UART0 (`0xfe201000`, IRQ 153), the watchdog (`-W`) and early `-u reg` options are dropped, and `ksh` is started right after `pipe`. It fails if any edit no longer matches, so a BSP update cannot change the result silently.
-- The shell starts before the rest of the BSP startup script because that script waits for hardware QEMU does not model (`/dev/pci`, `/dev/io-spi`, `/dev/sd0`) and would block forever. Anything that needs those devices will not work on this image.
+- `qnx/scripts/derive-qemu-buildfile.sh` rewrites the BSP's `images/rpi4.build` at build time: console moves from the mini UART to QEMU's PL011 UART0 (`0xfe201000`, IRQ 153), the watchdog (`-W`) and early `-u reg` options are dropped, `/proc/boot/startup.sh` and then `ksh` are started right after `pipe`, and `qnx/image/rpi4-qemu.extra.build` (our own file entries) is appended. It fails if any edit no longer matches, so a BSP update cannot change the result silently.
+- The startup script and shell run before the rest of the BSP startup script because that script waits for hardware QEMU does not model (`/dev/pci`, `/dev/io-spi`, `/dev/sd0`) and would block forever. Anything that needs those devices will not work on this image.
+- Everything lives in the IFS; there is no separate system disk and no network or SSH. `raspi4b` has no virtio bus and no NIC. Its emulated SD card was not usable either: the BSP's `devb-sdmmc-bcm2711` started but logged `failed to find bcm2711-sdmmc tag` and found no interface, probably because a bare `-kernel` boot passes no Raspberry Pi device tree (not verified).
+- `qnx/image/startup.sh` (embedded as `/proc/boot/startup.sh`) sets the hostname and timezone, starts `slogger2`, `dumper`, `mqueue` and `random`, then starts SLM with `qnx/image/slm.xml`. The SLM config's `boot_complete` component creates `/tmp/boot-complete`, and the script prints `QNX startup complete` (or `QNX startup failed`) once it appears. Add services as `SLM:component` entries in `slm.xml`.
+- `/tmp` is `/dev/shmem`, which has no directories: use flat file names there.
+- `qnx/scripts/qemu.sh` is the launcher behind `run-qemu`, `start-qemu` and `stop-qemu`. The background mode sends the console to a log file, waits for the startup marker (bounded by `QEMU_BOOT_TIMEOUT`, default 60 s) and aborts at once on the failure marker. QEMU assigns `-serial` options in order, and the first one is the QNX console. Foreground and background runs share one pidfile (`qnx/build/qemu.pid`), so run one instance at a time: a second `start` is refused, and killing an instance by hand makes QEMU delete the pidfile that a newer instance may be using.
 - `make qnx-ifs` fills the BSP's `install/` tree from its `prebuilt/` directory (what the BSP's own Makefile does), so no compiler or license check is involved; only `mkifs` is used.
 - `raspi4b` needs QEMU 9 or newer; the host's QEMU (8.2 on Ubuntu 24.04) lacks it. `qnx-run-qemu` runs QEMU from the flake's `runtime` shell (`QNX_QEMU` overrides this).
-- The sibling `~/personal/ws/qemu-bringup` project is where this recipe came from; this repo is self-contained and does not depend on it.
+- `qnx/scripts/` and `qnx/image/` are currently byte-identical to the sibling `~/personal/ws/qemu-bringup` project (`diff -r` them to sync); only the Makefile differs, in how QEMU is provided. This repo is self-contained and does not depend on it. Setup of the SDP, license and BSP is in `docs/qnx-setup.md`.
 
 ## Dev shells
 

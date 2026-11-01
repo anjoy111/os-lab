@@ -1,0 +1,4 @@
+[uid=0 gid=0 perms=0755] /proc/boot/startup.sh=../image/startup.sh
+[uid=0 gid=0 perms=0644] /etc/system/slm/config/slm-qemu.xml=../image/slm.xml
+[uid=0 gid=0 perms=0755] /usr/sbin/slm=slm
+[uid=0 gid=0 perms=0755] /bin/slmctl=slmctl

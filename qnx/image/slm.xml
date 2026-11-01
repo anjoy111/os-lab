@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SLM:system>
+<SLM:component name="boot_complete">
+    <SLM:command>/usr/bin/touch</SLM:command>
+    <SLM:args>/tmp/boot-complete</SLM:args>
+    <SLM:repair>none</SLM:repair>
+    <SLM:waitfor wait="exits"></SLM:waitfor>
+</SLM:component>
+</SLM:system>
